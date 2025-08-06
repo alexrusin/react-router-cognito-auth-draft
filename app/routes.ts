@@ -10,5 +10,6 @@ export default [
     route("dashboard", "routes/dashboard.tsx"),
     route("admin", "routes/admin.tsx"),
   ]),
-  index("routes/home.tsx"),
+  index("routes/home/index.tsx"),
+  route("auth/callback", "routes/auth/callback.ts"),
 ] satisfies RouteConfig;
