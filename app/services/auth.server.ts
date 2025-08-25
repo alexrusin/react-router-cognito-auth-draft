@@ -1,11 +1,13 @@
 import { Authenticator } from "remix-auth";
 import { OAuth2Strategy, CodeChallengeMethod } from "remix-auth-oauth2";
 import type { OAuth2Tokens } from "arctic";
+import jwt, { type JwtPayload } from "jsonwebtoken";
 
-type User = {
+export type User = {
   id: string;
   email: string;
   name: string;
+  admin: boolean;
 };
 
 export const authenticator = new Authenticator<User>();
@@ -23,7 +25,7 @@ authenticator.use(
       redirectURI: "http://localhost:5173/auth/callback",
       tokenRevocationEndpoint: `${process.env.COGNITO_DOMAIN}/revoke`, // optional
 
-      scopes: ["openid", "email"], // optional
+      scopes: ["openid", "email", "profile"],
       codeChallengeMethod: CodeChallengeMethod.S256, // optional
     },
     async ({ tokens, request }) => {
@@ -39,10 +41,12 @@ authenticator.use(
 
 async function getUser(tokens: OAuth2Tokens, request: Request): Promise<User> {
   const idToken = tokens.idToken();
-  console.log("id token", idToken);
+  const decoded = jwt.decode(idToken) as JwtPayload;
+  // can make a call to database to get other user properties like if user is admin
   return {
-    id: "123",
-    email: "name@email.com",
-    name: "User Name",
+    id: decoded.sub as string,
+    email: decoded.email,
+    name: decoded.name,
+    admin: false,
   };
 }

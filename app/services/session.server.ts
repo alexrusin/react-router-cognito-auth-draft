@@ -1,13 +1,24 @@
 import { createCookieSessionStorage } from "react-router";
+import type { User } from "./auth.server";
 
-// Create a session storage
-export const sessionStorage = createCookieSessionStorage({
-  cookie: {
-    name: "__session",
-    httpOnly: true,
-    path: "/",
-    sameSite: "lax",
-    secrets: [process.env.APP_SECRET || ""],
-    secure: process.env.NODE_ENV === "production",
-  },
-});
+type SessionData = {
+  user: User;
+};
+
+type SessionFlashData = {
+  error: string;
+};
+
+const { getSession, commitSession, destroySession } =
+  createCookieSessionStorage<SessionData, SessionFlashData>({
+    cookie: {
+      name: "__session",
+      httpOnly: true,
+      path: "/",
+      sameSite: "lax",
+      secrets: [process.env.APP_SECRET || ""],
+      secure: process.env.NODE_ENV === "production",
+    },
+  });
+
+export { getSession, commitSession, destroySession };

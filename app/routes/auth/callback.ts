@@ -1,12 +1,25 @@
 import { authenticator } from "~/services/auth.server";
 import type { Route } from "./+types/callback";
 import { redirect } from "react-router";
+import { commitSession, getSession } from "~/services/session.server";
 
 export async function loader({ request }: Route.LoaderArgs) {
+  const session = await getSession(request.headers.get("Cookie"));
   let user = await authenticator.authenticate("cognito-auth", request);
-  console.log("user", user);
-  if (user) {
-    return redirect("/dashboard");
+  if (!user) {
+    session.flash("error", "There was an error authenticating your request");
+    return redirect("/", {
+      headers: {
+        "Set-Cookie": await commitSession(session),
+      },
+    });
   }
-  return "/";
+
+  session.set("user", user);
+
+  return redirect("/dashboard", {
+    headers: {
+      "Set-Cookie": await commitSession(session),
+    },
+  });
 }
