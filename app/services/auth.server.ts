@@ -5,9 +5,11 @@ import jwt, { type JwtPayload } from "jsonwebtoken";
 
 export type User = {
   id: string;
-  email: string;
-  name: string;
-  admin: boolean;
+  accessToken: string;
+  name?: string;
+  refreshToken: string;
+  tokenExpiresIn: number;
+  admin?: boolean;
 };
 
 export const authenticator = new Authenticator<User>();
@@ -23,7 +25,7 @@ authenticator.use(
       authorizationEndpoint: `${process.env.COGNITO_DOMAIN}/oauth2/authorize`,
       tokenEndpoint: `${process.env.COGNITO_DOMAIN}/oauth2/token`,
       redirectURI: "http://localhost:5173/auth/callback",
-      tokenRevocationEndpoint: `${process.env.COGNITO_DOMAIN}/revoke`, // optional
+      tokenRevocationEndpoint: `${process.env.COGNITO_DOMAIN}/oauth2/revoke`, // optional
 
       scopes: ["openid", "email", "profile"],
       codeChallengeMethod: CodeChallengeMethod.S256, // optional
@@ -42,11 +44,10 @@ authenticator.use(
 async function getUser(tokens: OAuth2Tokens, request: Request): Promise<User> {
   const idToken = tokens.idToken();
   const decoded = jwt.decode(idToken) as JwtPayload;
-  // can make a call to database to get other user properties like if user is admin
   return {
     id: decoded.sub as string,
-    email: decoded.email,
-    name: decoded.name,
-    admin: false,
+    accessToken: tokens.accessToken(),
+    refreshToken: tokens.refreshToken(),
+    tokenExpiresIn: Date.now() + tokens.accessTokenExpiresInSeconds() * 1000,
   };
 }

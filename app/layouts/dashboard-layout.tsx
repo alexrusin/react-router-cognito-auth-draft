@@ -3,16 +3,27 @@ import { useState } from "react";
 import { data, Form, NavLink, Outlet } from "react-router";
 import type { Route } from "./+types/dashboard-layout";
 import { getSession } from "~/services/session.server";
+import { ApiClient } from "~/services/ApiClient";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await getSession(request.headers.get("Cookie"));
-  const user = session.get("user");
-  return data({ user });
+  const apiClient = new ApiClient(session, process.env.COGNITO_DOMAIN || "");
+
+  const response = await apiClient.request({
+    method: "GET",
+    url: "oauth2/userInfo",
+  });
+
+  return data(response.data, {
+    headers: {
+      "Set-Cookie": await apiClient.commit(),
+    },
+  });
 }
 
 export default function Layout({ loaderData }: Route.ComponentProps) {
   const [open, setOpen] = useState(false);
-  const { user } = loaderData;
+  const { name, ["custom:role"]: role } = loaderData;
 
   return (
     <div>
@@ -27,7 +38,7 @@ export default function Layout({ loaderData }: Route.ComponentProps) {
             >
               Dashboard
             </NavLink>
-            {user?.admin ? (
+            {role === "admin" ? (
               <NavLink
                 to="/admin"
                 className={({ isActive }) =>
@@ -41,9 +52,7 @@ export default function Layout({ loaderData }: Route.ComponentProps) {
 
           <div className="relative">
             <div className="flex">
-              {user?.name ? (
-                <div className="text-white mr-2">{user.name}</div>
-              ) : null}
+              {name ? <div className="text-white mr-2">{name}</div> : null}
 
               <button
                 onClick={() => setOpen(!open)}
