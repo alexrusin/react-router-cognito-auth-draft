@@ -2,28 +2,19 @@ import { FaUserCircle } from "react-icons/fa";
 import { useState } from "react";
 import { data, Form, NavLink, Outlet } from "react-router";
 import type { Route } from "./+types/dashboard-layout";
-import { getSession } from "~/services/session.server";
-import { ApiClient } from "~/services/ApiClient";
+import { userContext } from "~/context";
+import { authMiddleware } from "~/middleware/authMiddleware";
 
-export async function loader({ request }: Route.LoaderArgs) {
-  const session = await getSession(request.headers.get("Cookie"));
-  const apiClient = new ApiClient(session, process.env.COGNITO_DOMAIN || "");
+export const middleware: Route.MiddlewareFunction[] = [authMiddleware];
 
-  const response = await apiClient.request({
-    method: "GET",
-    url: "oauth2/userInfo",
-  });
-
-  return data(response.data, {
-    headers: {
-      "Set-Cookie": await apiClient.commit(),
-    },
-  });
+export async function loader({ context }: Route.LoaderArgs) {
+  const userInfo = context.get(userContext);
+  return data(userInfo);
 }
 
 export default function Layout({ loaderData }: Route.ComponentProps) {
   const [open, setOpen] = useState(false);
-  const { name, ["custom:role"]: role } = loaderData;
+  const userInfo = loaderData;
 
   return (
     <div>
@@ -38,7 +29,7 @@ export default function Layout({ loaderData }: Route.ComponentProps) {
             >
               Dashboard
             </NavLink>
-            {role === "admin" ? (
+            {userInfo?.["custom:role"] === "admin" ? (
               <NavLink
                 to="/admin"
                 className={({ isActive }) =>
@@ -52,7 +43,9 @@ export default function Layout({ loaderData }: Route.ComponentProps) {
 
           <div className="relative">
             <div className="flex">
-              {name ? <div className="text-white mr-2">{name}</div> : null}
+              {userInfo?.name ? (
+                <div className="text-white mr-2">{userInfo.name}</div>
+              ) : null}
 
               <button
                 onClick={() => setOpen(!open)}

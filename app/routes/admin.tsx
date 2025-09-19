@@ -1,30 +1,13 @@
-import { getSession } from "~/services/session.server";
 import type { Route } from "./+types/admin";
 import { data, redirect } from "react-router";
-import { ApiClient } from "~/services/ApiClient";
+import { userContext } from "~/context";
 
-export async function loader({ request }: Route.LoaderArgs) {
-  const session = await getSession(request.headers.get("Cookie"));
-  const user = session.get("user");
-  if (!user) {
-    return redirect("/");
-  }
-  const apiClient = new ApiClient(session, process.env.COGNITO_DOMAIN || "");
-
-  const response = await apiClient.request({
-    method: "GET",
-    url: "oauth2/userInfo",
-  });
-
-  if (response.data?.["custom:role"] !== "admin") {
+export async function loader({ context }: Route.LoaderArgs) {
+  const userInfo = context.get(userContext);
+  if (userInfo?.["custom:role"] !== "admin") {
     return redirect("/dashboard");
   }
-
-  return data(response.data, {
-    headers: {
-      "Set-Cookie": await apiClient.commit(),
-    },
-  });
+  return data(userInfo);
 }
 export default function Admin({ loaderData }: Route.ComponentProps) {
   const { name } = loaderData;

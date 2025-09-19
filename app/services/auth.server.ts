@@ -24,7 +24,7 @@ authenticator.use(
 
       authorizationEndpoint: `${process.env.COGNITO_DOMAIN}/oauth2/authorize`,
       tokenEndpoint: `${process.env.COGNITO_DOMAIN}/oauth2/token`,
-      redirectURI: "http://localhost:5173/auth/callback",
+      redirectURI: `${process.env.APP_URL}/auth/callback`,
       tokenRevocationEndpoint: `${process.env.COGNITO_DOMAIN}/oauth2/revoke`, // optional
 
       scopes: ["openid", "email", "profile"],

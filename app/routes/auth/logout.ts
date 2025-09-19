@@ -16,7 +16,7 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   const logoutUrl = `${process.env.COGNITO_DOMAIN}/logout?client_id=${process.env.COGNITO_CLIENT_ID}&logout_uri=${encodeURIComponent(
-    "http://localhost:5173/auth/logout",
+    `${process.env.APP_URL}/auth/logout`,
   )}`;
   return redirect(logoutUrl);
 }
