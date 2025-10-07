@@ -1,6 +1,9 @@
 import { data } from "react-router";
 import type { Route } from "./+types/dashboard";
 import { userContext } from "~/context";
+import { authMiddleware } from "~/middleware/authMiddleware";
+
+export const middleware: Route.MiddlewareFunction[] = [authMiddleware];
 
 export async function loader({ context }: Route.LoaderArgs) {
   const userInfo = context.get(userContext);
