@@ -1,0 +1,16 @@
+version: "3.9"
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: my-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    # To enable a password uncomment below line and add password in TS code:
+    # command: redis-server --requirepass s3cret
+
+volumes:
+  redis_data:
