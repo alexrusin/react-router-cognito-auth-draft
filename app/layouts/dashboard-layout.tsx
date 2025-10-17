@@ -1,6 +1,6 @@
 import { FaUserCircle } from "react-icons/fa";
 import { useState } from "react";
-import { data, Form, NavLink, Outlet } from "react-router";
+import { data, Form, NavLink, Link, Outlet } from "react-router";
 import type { Route } from "./+types/dashboard-layout";
 import { userContext } from "~/context";
 import { authMiddleware } from "~/middleware/authMiddleware";
@@ -56,15 +56,24 @@ export default function Layout({ loaderData }: Route.ComponentProps) {
             </div>
 
             {open && (
-              <div className="absolute right-0 mt-2 w-40 bg-white text-black rounded shadow z-10">
-                <Form method="post" action="auth/logout">
-                  <button
-                    type="submit"
+              <div className="absolute right-0 mt-2 w-48 bg-white text-black rounded shadow z-10">
+                <div className="flex flex-col">
+                  <Link
+                    to="/account-settings"
                     className="w-full text-left px-4 py-2 hover:bg-gray-100 cursor-pointer"
                   >
-                    Log Out
-                  </button>
-                </Form>
+                    Account Settings
+                  </Link>
+
+                  <Form method="post" action="auth/logout">
+                    <button
+                      type="submit"
+                      className="w-full text-left px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                    >
+                      Log Out
+                    </button>
+                  </Form>
+                </div>
               </div>
             )}
           </div>

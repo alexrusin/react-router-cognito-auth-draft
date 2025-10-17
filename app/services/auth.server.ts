@@ -10,6 +10,7 @@ export type User = {
   refreshToken: string;
   tokenExpiresIn: number;
   admin?: boolean;
+  username?: string;
 };
 
 export const authenticator = new Authenticator<User>();
@@ -25,9 +26,9 @@ authenticator.use(
       authorizationEndpoint: `${process.env.COGNITO_DOMAIN}/oauth2/authorize`,
       tokenEndpoint: `${process.env.COGNITO_DOMAIN}/oauth2/token`,
       redirectURI: `${process.env.APP_URL}/auth/callback`,
-      tokenRevocationEndpoint: `${process.env.COGNITO_DOMAIN}/oauth2/revoke`, // optional
+      tokenRevocationEndpoint: `${process.env.COGNITO_DOMAIN}/oauth2/revoke`,
 
-      scopes: ["openid", "email", "profile"],
+      scopes: ["openid", "email", "profile", "aws.cognito.signin.user.admin"],
       codeChallengeMethod: CodeChallengeMethod.S256, // optional
     },
     async ({ tokens, request }) => {

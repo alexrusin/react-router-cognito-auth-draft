@@ -9,6 +9,7 @@ export default [
   layout("layouts/dashboard-layout.tsx", [
     route("dashboard", "routes/dashboard.tsx"),
     route("admin", "routes/admin.tsx"),
+    route("account-settings", "routes/account-settings.tsx"),
   ]),
   index("routes/home/index.tsx"),
   route("auth/callback", "routes/auth/callback.ts"),

@@ -2,7 +2,7 @@ import { authenticator } from "~/services/auth.server";
 import type { Route } from "./+types/callback";
 import { redirect } from "react-router";
 import { commitSession, getSession } from "~/services/session.server";
-import { ApiClient } from "~/services/ApiClient";
+import { ApiClient } from "~/services/ApiClient.server";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const session = await getSession(request.headers.get("Cookie"));
