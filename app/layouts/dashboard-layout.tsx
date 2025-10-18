@@ -60,6 +60,7 @@ export default function Layout({ loaderData }: Route.ComponentProps) {
                 <div className="flex flex-col">
                   <Link
                     to="/account-settings"
+                    onClick={() => setOpen(!open)}
                     className="w-full text-left px-4 py-2 hover:bg-gray-100 cursor-pointer"
                   >
                     Account Settings

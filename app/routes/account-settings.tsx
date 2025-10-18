@@ -2,159 +2,25 @@ import { useEffect, useState } from "react";
 import type { Route } from "./+types/account-settings";
 import { authMiddleware } from "~/middleware/authMiddleware";
 import { data, useFetcher } from "react-router";
-import { commitSession, getSession } from "~/services/session.server";
-import {
-  AdminGetUserCommand,
-  AdminSetUserPasswordCommand,
-  AdminUpdateUserAttributesCommand,
-  CognitoIdentityProviderClient,
-  GetUserAttributeVerificationCodeCommand,
-  VerifyUserAttributeCommand,
-} from "@aws-sdk/client-cognito-identity-provider";
 
 export const middleware: Route.MiddlewareFunction[] = [authMiddleware];
 
 export async function loader({ request }: Route.LoaderArgs) {
-  const session = await getSession(request.headers.get("Cookie"));
-
-  const client = new CognitoIdentityProviderClient({});
-  const command = new AdminGetUserCommand({
-    UserPoolId: process.env.COGNITO_USER_POOL_ID || "",
-    Username: session.get("user")?.username || "",
-  });
-
-  const cognitoUser = await client.send(command);
-  if (!cognitoUser.UserAttributes) {
-    throw new Error("Error getting user information");
-  }
-  const user = Object.fromEntries(
-    cognitoUser.UserAttributes.map((item) => [
-      item.Name ?? "",
-      item.Value ?? "",
-    ]),
-  );
+  const user = {
+    name: "John Doe",
+    email: "john@email.com",
+    email_verified: "true",
+    identities: null,
+  };
 
   return data(user);
 }
 
 export async function action({ request }: Route.ActionArgs) {
-  //   await new Promise((res) => setTimeout(res, 1000));
-  const formData = await request.formData();
-  const name = (formData.get("name") as string) || "";
-  const email = (formData.get("email") as string) || "";
-  const code = (formData.get("code") as string) || "";
-  const resendVerification = formData.get("resendVerification") === "true";
-  const newPassword = (formData.get("newPassword") as string) || "";
-
-  if (name && name.trim() === "") {
-    return { ok: false, error: "Name cannot be empty" };
-  }
-  if (email && email.trim() === "") {
-    return { ok: false, error: "Email cannot be empty" };
-  }
-
-  if (code && code.trim() === "") {
-    return { ok: false, error: "Verification code cannot be empty" };
-  }
-
-  if (newPassword && newPassword.length < 8) {
-    return { ok: false, error: "Password must be at least 8 characters" };
-  }
-
-  const session = await getSession(request.headers.get("Cookie"));
-  const username = session.get("user")?.username || "";
-
-  const client = new CognitoIdentityProviderClient({});
-
-  if (code) {
-    try {
-      await client.send(
-        new VerifyUserAttributeCommand({
-          AccessToken: session.get("user")?.accessToken,
-          AttributeName: "email",
-          Code: code,
-        }),
-      );
-      return {
-        ok: true,
-        message: "Email verified successfully",
-      };
-    } catch (error: any) {
-      return { ok: false, error: error.message || "Failed to verify email" };
-    }
-  }
-
-  if (resendVerification) {
-    try {
-      await client.send(
-        new GetUserAttributeVerificationCodeCommand({
-          AccessToken: session.get("user")?.accessToken,
-          AttributeName: "email",
-        }),
-      );
-      return { ok: true, message: "Verification code sent!" };
-    } catch (error: any) {
-      return {
-        ok: false,
-        error: error.message || "Failed to send verification code",
-      };
-    }
-  }
-
-  if (newPassword) {
-    try {
-      await client.send(
-        new AdminSetUserPasswordCommand({
-          UserPoolId: process.env.COGNITO_USER_POOL_ID || "",
-          Username: username,
-          Password: newPassword,
-          Permanent: true,
-        }),
-      );
-      return { ok: true, message: "Password updated successfully" };
-    } catch (error: any) {
-      return { ok: false, error: error.message || "Failed to update password" };
-    }
-  }
-
-  // Update user attributes
-  const userAttributes = [];
-  if (name) {
-    userAttributes.push({ Name: "name", Value: name });
-  }
-  if (email) {
-    userAttributes.push({ Name: "email", Value: email });
-  }
-
-  if (userAttributes.length === 0) {
-    return { ok: false, error: "No data to update" };
-  }
-
-  const command = new AdminUpdateUserAttributesCommand({
-    UserPoolId: process.env.COGNITO_USER_POOL_ID || "",
-    Username: username,
-    UserAttributes: userAttributes,
-  });
-
-  try {
-    await client.send(command);
-    // Update session user object
-    const user = session.get("user");
-    if (user) {
-      if (name) user.name = name;
-      session.set("user", user);
-    }
-
-    return {
-      ok: true,
-      message: "User information updated successfully",
-      headers: {
-        "Set-Cookie": await commitSession(session),
-      },
-    };
-  } catch (error: any) {
-    return { ok: false, error: error.message || "Failed to update" };
-  }
+  return {
+    ok: true,
+    message: "User information updated successfully",
+  };
 }
 
 export default function AccountSettings({ loaderData }: Route.ComponentProps) {
