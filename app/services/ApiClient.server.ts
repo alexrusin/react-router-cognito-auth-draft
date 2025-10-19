@@ -114,6 +114,13 @@ export class ApiClient {
     this.session.set("user", user);
   }
 
+  async getAccessToken(): Promise<string | undefined> {
+    if (this.isTokenExpired()) {
+      await this.refreshAccessToken();
+    }
+    return this.session.get("user")?.accessToken;
+  }
+
   async request<T = any>(
     config: AxiosRequestConfig,
   ): Promise<AxiosResponse<T>> {

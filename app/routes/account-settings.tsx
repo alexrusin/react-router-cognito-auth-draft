@@ -11,6 +11,7 @@ import {
   GetUserAttributeVerificationCodeCommand,
   VerifyUserAttributeCommand,
 } from "@aws-sdk/client-cognito-identity-provider";
+import { ApiClient } from "~/services/ApiClient.server";
 
 export const middleware: Route.MiddlewareFunction[] = [authMiddleware];
 
@@ -66,11 +67,13 @@ export async function action({ request }: Route.ActionArgs) {
 
   const client = new CognitoIdentityProviderClient({});
 
+  const apiClient = new ApiClient(session, "");
+
   if (code) {
     try {
       await client.send(
         new VerifyUserAttributeCommand({
-          AccessToken: session.get("user")?.accessToken,
+          AccessToken: await apiClient.getAccessToken(),
           AttributeName: "email",
           Code: code,
         }),
@@ -88,7 +91,7 @@ export async function action({ request }: Route.ActionArgs) {
     try {
       await client.send(
         new GetUserAttributeVerificationCodeCommand({
-          AccessToken: session.get("user")?.accessToken,
+          AccessToken: await apiClient.getAccessToken(),
           AttributeName: "email",
         }),
       );
